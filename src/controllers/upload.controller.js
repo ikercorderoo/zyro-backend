@@ -27,7 +27,7 @@ export const handleUpload = async (req, res) => {
     try {
         // Upload the file buffer to Uploadcare
         const result = await uploadFile(req.file.buffer, {
-            publicKey: '7927946679398ad7e521',
+            publicKey: '0d03410721703a146c8a',
             store: 'auto',
             fileName: req.file.originalname
         });
