@@ -1,21 +1,8 @@
 import multer from 'multer';
-import path from 'path';
-import fs from 'fs';
+import { uploadFile } from '@uploadcare/upload-client';
 
-// Configure storage
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        const uploadPath = 'uploads/';
-        if (!fs.existsSync(uploadPath)) {
-            fs.mkdirSync(uploadPath, { recursive: true });
-        }
-        cb(null, uploadPath);
-    },
-    filename: (req, file, cb) => {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
-    }
-});
+// Use memory storage instead of disk to avoid Railway's ephemeral filesystem issues
+const storage = multer.memoryStorage();
 
 // Filter for images only
 const fileFilter = (req, file, cb) => {
@@ -32,16 +19,31 @@ export const upload = multer({
     limits: { fileSize: 5 * 1024 * 1024 } // 5MB limit
 });
 
-export const handleUpload = (req, res) => {
+export const handleUpload = async (req, res) => {
     if (!req.file) {
         return res.status(400).json({ message: 'No file uploaded' });
     }
     
-    // Return the URL to access the file
-    // In a real app, this might be a full URL with domain
-    const fileUrl = `/uploads/${req.file.filename}`;
-    res.status(201).json({ 
-        message: 'File uploaded successfully',
-        url: fileUrl 
-    });
+    try {
+        // Upload the file buffer to Uploadcare
+        const result = await uploadFile(req.file.buffer, {
+            publicKey: '7927946679398ad7e521',
+            store: 'auto',
+            fileName: req.file.originalname
+        });
+
+        // The permanent URL from Uploadcare
+        const fileUrl = result.cdnUrl;
+
+        res.status(201).json({ 
+            message: 'File uploaded successfully to cloud storage',
+            url: fileUrl 
+        });
+    } catch (error) {
+        console.error('Uploadcare error:', error);
+        res.status(500).json({ 
+            message: 'Error uploading to cloud storage',
+            error: error.message 
+        });
+    }
 };
