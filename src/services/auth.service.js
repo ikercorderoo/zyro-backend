@@ -109,3 +109,34 @@ export const verifyEmail = async (token) => {
 
     return { message: 'Código verificado correctamente. Ya puedes iniciar sesión.' };
 };
+
+export const resendVerificationCode = async (email) => {
+    const user = await prisma.user.findUnique({
+        where: { email }
+    });
+
+    if (!user) {
+        const error = new Error('No existe ningún usuario registrado con este correo electrónico.');
+        error.statusCode = 404;
+        throw error;
+    }
+
+    if (user.isVerified) {
+        const error = new Error('Esta cuenta ya ha sido verificada.');
+        error.statusCode = 400;
+        throw error;
+    }
+
+    // Generar nuevo código de 6 dígitos
+    const verificationToken = Math.floor(100000 + Math.random() * 900000).toString();
+
+    await prisma.user.update({
+        where: { id: user.id },
+        data: { verificationToken }
+    });
+
+    // Enviar el email real
+    await sendVerificationEmail(user.email, user.name, verificationToken);
+
+    return { message: 'Nuevo código de verificación enviado correctamente a tu correo.' };
+};

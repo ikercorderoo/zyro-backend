@@ -75,3 +75,16 @@ export const verifyEmail = async (req, res, next) => {
         next(error);
     }
 };
+
+export const resendVerificationCode = async (req, res, next) => {
+    try {
+        const { email } = req.body;
+        if (!email) {
+            return res.status(400).json({ message: 'El correo electrónico es obligatorio' });
+        }
+        const result = await authService.resendVerificationCode(email);
+        res.json(result);
+    } catch (error) {
+        next(error);
+    }
+};
