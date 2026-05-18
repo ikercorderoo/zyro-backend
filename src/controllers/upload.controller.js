@@ -34,6 +34,10 @@ export const handleUpload = async (req, res) => {
 
         // The permanent URL from Uploadcare
         const fileUrl = result.cdnUrl;
+        console.log('--- UPLOAD SUCCESS ---');
+        console.log('File name:', req.file.originalname);
+        console.log('Uploaded URL:', fileUrl);
+        console.log('----------------------');
 
         res.status(201).json({ 
             message: 'File uploaded successfully to cloud storage',
