@@ -83,5 +83,6 @@ router.post('/admin/config', authMiddleware, roleMiddleware(['ADMIN']), utilsCon
  *         description: List of all categories
  */
 router.get('/categories', utilsController.getCategories);
+router.post('/contact', utilsController.submitContactForm);
 
 export default router;

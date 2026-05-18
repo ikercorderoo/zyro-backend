@@ -87,3 +87,21 @@ export const updateSystemConfig = async (req, res, next) => {
         next(error);
     }
 };
+
+import { sendContactFormEmail } from '../utils/email.utils.js';
+
+export const submitContactForm = async (req, res, next) => {
+    try {
+        const { name, email, subject, message } = req.body;
+        
+        if (!name || !email || !subject || !message) {
+            return res.status(400).json({ message: 'Todos los campos son obligatorios' });
+        }
+
+        await sendContactFormEmail(name, email, subject, message);
+
+        res.status(200).json({ message: 'Tu mensaje ha sido enviado correctamente. Nos pondremos en contacto contigo pronto.' });
+    } catch (error) {
+        next(error);
+    }
+};
