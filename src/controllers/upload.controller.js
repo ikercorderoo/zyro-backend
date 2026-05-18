@@ -25,11 +25,17 @@ export const handleUpload = async (req, res) => {
     }
     
     try {
+        let baseCDN = process.env.UPLOADCARE_BASE_CDN || undefined;
+        if (baseCDN && !baseCDN.endsWith('/')) {
+            baseCDN = `${baseCDN}/`;
+        }
+
         // Upload the file buffer to Uploadcare
         const result = await uploadFile(req.file.buffer, {
             publicKey: '0d03410721703a146c8a',
             store: true,
-            fileName: req.file.originalname
+            fileName: req.file.originalname,
+            baseCDN: baseCDN
         });
 
         // The permanent URL from Uploadcare
