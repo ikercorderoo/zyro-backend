@@ -58,6 +58,8 @@ router.post('/register', authController.register);
 router.post('/login', authController.login);
 router.get('/verify/:token', authController.verifyEmail);
 router.post('/resend-verification', authController.resendVerificationCode);
+router.post('/forgot-password', authController.forgotPassword);
+router.post('/reset-password', authController.resetPassword);
 
 /**
  * @swagger

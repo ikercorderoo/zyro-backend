@@ -1,8 +1,8 @@
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import prisma from '../config/db.js';
-import { generateToken } from '../utils/jwt.utils.js';
-import { sendVerificationEmail } from '../utils/email.utils.js';
+import { generateToken, generateResetToken, verifyResetToken } from '../utils/jwt.utils.js';
+import { sendVerificationEmail, sendPasswordResetEmail } from '../utils/email.utils.js';
 
 export const register = async (userData) => {
     // Check if user already exists
@@ -139,4 +139,44 @@ export const resendVerificationCode = async (email) => {
     await sendVerificationEmail(user.email, user.name, verificationToken);
 
     return { message: 'Nuevo código de verificación enviado correctamente a tu correo.' };
+};
+
+export const forgotPassword = async (email) => {
+    const user = await prisma.user.findUnique({
+        where: { email }
+    });
+
+    if (!user) {
+        // Para no revelar si un email existe o no, devolvemos success igualmente
+        return { message: 'Si el correo existe, se ha enviado un enlace de recuperación.' };
+    }
+
+    const resetToken = generateResetToken({ id: user.id });
+    // Usar variable de entorno o localhost
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    const resetLink = `${frontendUrl}/reset-password?token=${resetToken}`;
+
+    await sendPasswordResetEmail(user.email, user.name, resetLink);
+
+    return { message: 'Si el correo existe, se ha enviado un enlace de recuperación.' };
+};
+
+export const resetPassword = async (token, newPassword) => {
+    // Esto lanzará un error si el token es inválido o expiró
+    const decoded = verifyResetToken(token);
+
+    if (!decoded || !decoded.id) {
+        const error = new Error('Token inválido');
+        error.statusCode = 400;
+        throw error;
+    }
+
+    const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+
+    await prisma.user.update({
+        where: { id: decoded.id },
+        data: { password: hashedNewPassword }
+    });
+
+    return { message: 'Contraseña actualizada correctamente. Ya puedes iniciar sesión.' };
 };

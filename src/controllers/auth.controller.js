@@ -88,3 +88,38 @@ export const resendVerificationCode = async (req, res, next) => {
         next(error);
     }
 };
+
+const forgotPasswordSchema = z.object({
+    email: z.string().email('Por favor, introduce un correo válido')
+});
+
+export const forgotPassword = async (req, res, next) => {
+    try {
+        const { email } = forgotPasswordSchema.parse(req.body);
+        const result = await authService.forgotPassword(email);
+        res.json(result);
+    } catch (error) {
+        if (error instanceof z.ZodError) {
+            return res.status(400).json({ errors: error.errors });
+        }
+        next(error);
+    }
+};
+
+const resetPasswordSchema = z.object({
+    token: z.string(),
+    newPassword: z.string().min(6, 'La contraseña debe tener al menos 6 caracteres')
+});
+
+export const resetPassword = async (req, res, next) => {
+    try {
+        const { token, newPassword } = resetPasswordSchema.parse(req.body);
+        const result = await authService.resetPassword(token, newPassword);
+        res.json(result);
+    } catch (error) {
+        if (error instanceof z.ZodError) {
+            return res.status(400).json({ errors: error.errors });
+        }
+        next(error);
+    }
+};
