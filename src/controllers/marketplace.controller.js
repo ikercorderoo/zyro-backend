@@ -49,14 +49,19 @@ export const searchBusinesses = async (req, res, next) => {
 
 export const getRecommendations = async (req, res, next) => {
     try {
-        const { zone } = req.query;
+        const { zone, query } = req.query;
         
         const businesses = await prisma.business.findMany({
             where: {
+                OR: query ? [
+                    { name: { contains: query, mode: 'insensitive' } },
+                    { description: { contains: query, mode: 'insensitive' } },
+                    { services: { some: { name: { contains: query, mode: 'insensitive' } } } }
+                ] : undefined,
                 address: zone ? { contains: zone, mode: 'insensitive' } : undefined,
                 services: { some: { active: true } } 
             },
-            take: 4,
+            take: (zone || query) ? 20 : 6,
             orderBy: { createdAt: 'desc' },
             include: {
                 category: true,
