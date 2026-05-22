@@ -90,9 +90,10 @@ export const getServiceById = async (id) => {
 };
 
 export const updateService = async (id, data) => {
+    const { id: _id, business, addons, createdAt, updatedAt, businessId, ...updateData } = data;
     return await prisma.service.update({
         where: { id },
-        data
+        data: updateData
     });
 };
 
@@ -111,9 +112,11 @@ export const updateServiceForOwner = async (id, ownerId, data) => {
         throw error;
     }
 
+    const { id: _id, business, addons, createdAt, updatedAt, businessId, ...updateData } = data;
+
     return await prisma.service.update({
         where: { id },
-        data
+        data: updateData
     });
 };
 
