@@ -21,10 +21,11 @@ const app = express();
 app.use(helmet({
     crossOriginResourcePolicy: false,
 }));
-const allowedOrigins = process.env.FRONTEND_URL ? [process.env.FRONTEND_URL] : ['http://localhost:3000'];
+const allowedOrigins = process.env.FRONTEND_URL ? process.env.FRONTEND_URL.split(',') : ['http://localhost:3000'];
 app.use(cors({
     origin: function (origin, callback) {
-        if (!origin || allowedOrigins.includes(origin) || process.env.NODE_ENV !== 'production') {
+        const defaultAllowed = ['https://zyro-app.com', 'https://www.zyro-app.com'];
+        if (!origin || allowedOrigins.includes(origin) || defaultAllowed.includes(origin) || process.env.NODE_ENV !== 'production') {
             callback(null, true);
         } else {
             callback(new Error('Not allowed by CORS'));
