@@ -9,7 +9,10 @@ const registerSchema = z.object({
     password: z.string().min(6),
     role: z.enum(['CLIENT', 'PROFESSIONAL', 'ADMIN']).optional(),
     specialty: z.string().optional(),
-    cif: z.string().regex(/^[a-zA-Z]\d{7}[a-zA-Z0-9]$/, "Formato CIF/NIF inválido (ej: B12345678)").optional()
+    cif: z.union([
+        z.string().regex(/^[a-zA-Z]\d{7}[a-zA-Z0-9]$/, "Formato CIF/NIF inválido (ej: B12345678)"),
+        z.literal('')
+    ]).optional()
 }).refine(data => {
     if (data.role === 'PROFESSIONAL' && !data.cif) {
         return false;
